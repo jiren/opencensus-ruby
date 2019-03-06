@@ -108,7 +108,7 @@ module OpenCensus
       #
       # @param [String] name Name of the registered measure
       # @param [Integer, Float] value Value of the measurement
-      # @param [Hash<String,String>] tags Tags to which the value is recorded
+      # @param [Array<Tags::Tag>] tags Tags to which the value is recorded
       # @raise [ArgumentError] if givem measure is not register
       def create_measurement name:, value:, tags:
         measure = MeasureRegistry.get name

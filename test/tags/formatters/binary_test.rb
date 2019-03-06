@@ -5,12 +5,10 @@ describe OpenCensus::Tags::Formatters::Binary do
 
   describe "serialize" do
     it "return serialize tag map binary data" do
-      tag_map = OpenCensus::Tags::TagMap.new({
-        "key1" => "val1",
-        "key2" => "val2",
-        "key3" => "val3",
-        "key4" => "val4",
-      })
+      tag_map = OpenCensus::Tags::TagMap.new
+      4.times do |i|
+        tag_map << OpenCensus::Tags::Tag.new("key#{i+1}", "val#{i+1}")
+      end
 
       binary = formatter.serialize(tag_map)
       expected_binary = "\x00\x00\x04key1\x04val1\x00\x04key2\x04val2\x00\x04key3\x04val3\x00\x04key4\x04val4"
@@ -20,8 +18,8 @@ describe OpenCensus::Tags::Formatters::Binary do
     it "return nil if tag map serialize data size more then 8192 bytes" do
       tag_map = OpenCensus::Tags::TagMap.new
 
-      500.times do |i|
-        tag_map["key#{i}"] = "value#{i}"
+      600.times do |i|
+        tag_map << OpenCensus::Tags::Tag.new("key#{i+1}", "val#{i+1}")
       end
 
       binary = formatter.serialize(tag_map)
@@ -36,13 +34,9 @@ describe OpenCensus::Tags::Formatters::Binary do
       tag_map = formatter.deserialize binary
       tag_map.length.must_equal 4
 
-      expected_tag_map_values = {
-        "key1" => "val1",
-        "key2" => "val2",
-        "key3" => "val3",
-        "key4" => "val4",
-      }
-      tag_map.to_h.must_equal expected_tag_map_values
+      4.times do |i|
+        tag_map["key#{i+1}"].value.must_equal "val#{i+1}"
+      end
     end
 
     it "returns empty tag map for empty string" do
@@ -68,7 +62,8 @@ describe OpenCensus::Tags::Formatters::Binary do
       binary = "\x00\x00\x04key1\x04val1\x01\x04key2\x04val2\x00\x04key3\x04val3"
 
       tag_map = formatter.deserialize binary
-      tag_map.to_h.must_equal({ "key1" => "val1" })
+      tag_map.length.must_equal 1
+      tag_map["key1"].value.must_equal "val1"
     end
   end
 end

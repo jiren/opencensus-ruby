@@ -23,7 +23,7 @@ module OpenCensus
       #
       # @param [Measure] measure A measure to which the value is applied.
       # @param [Integer,Float] value Measurement value.
-      # @param [Hash<String,String>] tags The tags to which the value is applied
+      # @param [Array<Tags::Tag>] tags The tags to which the value is applied
       def initialize measure:, value:, tags:
         @measure = measure
         @value = value

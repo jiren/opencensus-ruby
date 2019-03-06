@@ -31,10 +31,12 @@ describe OpenCensus::Stats::Exporters::Logger do
     )
   }
   let(:tag_map) {
-    OpenCensus::Tags::TagMap.new(tag_keys.first => "mobile-ios9.3.5")
+    OpenCensus::Tags::TagMap.new([
+      OpenCensus::Tags::Tag.new(tag_keys.first, "mobile-ios9.3.5")
+    ])
   }
   let(:tags){
-    { tag_keys.first => "mobile-ios9.3.5" }
+    [ OpenCensus::Tags::Tag.new(tag_keys.first, "mobile-ios9.3.5") ]
   }
   let(:view_data){
     recorder = OpenCensus::Stats::Recorder.new

@@ -42,11 +42,11 @@ describe OpenCensus::Stats::Measurement do
       type: OpenCensus::Stats::Measure::DOUBLE_TYPE,
       description: "storage desc"
     )
-    tags = { "key1" => "val1" }
+    tags = [ OpenCensus::Tags::Tag.new("key1", "val1") ]
     measurement = measure.create_measurement value: 10.10, tags: tags
     measurement.value.must_equal 10.10
     measurement.measure.must_equal measure
     measurement.tags.must_be_kind_of OpenCensus::Tags::TagMap
-    measurement.tags.to_h.must_equal tags
+    measurement.tags["key1"].value.must_equal "val1"
   end
 end

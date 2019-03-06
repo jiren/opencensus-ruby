@@ -2,6 +2,7 @@
 
 
 require "forwardable"
+require "opencensus/tags/tag"
 
 module OpenCensus
   module Tags
@@ -38,31 +39,29 @@ module OpenCensus
     class TagMap
       extend Forwardable
 
-      # The maximum length for a tag key and tag value
-      MAX_LENGTH = 255
-
       # Create a tag map. It is a map of tags from key to value.
-      # @param [Hash{String=>String}] tags Tags hash with string key and value.
-      #
-      def initialize tags = {}
-        @tags = {}
-
-        tags.each do |key, value|
-          self[key] = value
-        end
+      # @param [Array<Tag>] tags Tags list with string key and value and
+      #   metadata.
+      def initialize tags = []
+        @tags = tags.each_with_object({}) { |tag, r| r[tag.key] = tag }
       end
 
-      # Set tag key value
-      #
-      # @param [String] key Tag key
-      # @param [String] value Tag value
-      # @raise [InvalidTagError] If invalid tag key or value.
-      #
-      def []= key, value
-        validate_key! key
-        validate_value! value
+      # Insert tag.
+      # @param [Tag] tag
+      def << tag
+        @tags[tag.key] = tag
+      end
 
-        @tags[key] = value
+      # Get all tags
+      # @param [Array<Tag>]
+      def tags
+        @tags.values
+      end
+
+      # Get tag by key
+      # @return [Tag]
+      def [] key
+        @tags[key]
       end
 
       # Convert tag map to binary string format.
@@ -81,57 +80,21 @@ module OpenCensus
         Formatters::Binary.new.deserialize data
       end
 
-      # @!method []
-      #   @see Hash#[]
+      # Delete tag by key
+      # @param [String] key Tag key
+      def delete key
+        @tags.delete key
+      end
+
       # @!method each
-      #   @see Hash#each
-      # @!method delete
-      #   @see Hash#delete
+      #   @see Array#each
       # @!method delete_if
-      #   @see Hash#delete_if
+      #   @see Array#delete_if
       # @!method length
-      #   @see Hash#length
-      # @!method to_h
-      #   @see Hash#to_h
+      #   @see Array#length
       # @!method empty?
-      #   @see Hash#empty?
-      def_delegators :@tags, :[], :each, :delete, :delete_if, :length, \
-                     :to_h, :empty?
-
-      # Invalid tag error.
-      class InvalidTagError < StandardError; end
-
-      private
-
-      # Validate tag key.
-      # @param [String] key
-      # @raise [InvalidTagError] If key is empty, length grater then 255
-      #   characters or contains non printable characters
-      #
-      def validate_key! key
-        if key.empty? || key.length > MAX_LENGTH || !printable_str?(key)
-          raise InvalidTagError, "Invalid tag key #{key}"
-        end
-      end
-
-      # Validate tag value.
-      # @param [String] value
-      # @raise [InvalidTagError] If value length grater then 255 characters
-      #   or contains non printable characters
-      #
-      def validate_value! value
-        if (value && value.length > MAX_LENGTH) || !printable_str?(value)
-          raise InvalidTagError, "Invalid tag value #{value}"
-        end
-      end
-
-      # Check string is printable.
-      # @param [String] str
-      # @return [Boolean]
-      #
-      def printable_str? str
-        str.bytes.none? { |b| b < 32 || b > 126 }
-      end
+      #   @see Array#empty?
+      def_delegators :tags, :each, :length, :empty?
     end
   end
 end

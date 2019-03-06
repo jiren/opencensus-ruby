@@ -45,7 +45,9 @@ module OpenCensus
       #
       # @param [Measurement] measurement
       def record measurement
-        tag_values = @view.columns.map { |column| measurement.tags[column] }
+        tag_values = @view.columns.map do |column|
+          measurement.tags[column].value
+        end
 
         unless @data.key? tag_values
           @data[tag_values] = @view.aggregation.create_aggregation_data

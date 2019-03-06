@@ -25,11 +25,13 @@ describe OpenCensus::Stats::Recorder do
     )
   }
   let(:tag_map) {
-    OpenCensus::Tags::TagMap.new(tag_keys.first => "mobile-ios9.3.5")
+    OpenCensus::Tags::TagMap.new([
+      OpenCensus::Tags::Tag.new(tag_keys.first, "mobile-ios9.3.5")
+    ])
   }
 
   let(:tags) {
-    { tag_keys.first => "mobile-ios9.3.5" }
+    [ OpenCensus::Tags::Tag.new(tag_keys.first, "mobile-ios9.3.5")]
   }
 
   it "create reacorder with default properties" do
@@ -133,7 +135,7 @@ describe OpenCensus::Stats::Recorder do
         value: -1,
         tags: tags
       )
-      recorder.record measurement, tags: tag_map
+      recorder.record measurement, tags: tags
       view_data = recorder.view_data view.name
       view_data.data.length.must_equal 0
     end
@@ -155,9 +157,9 @@ describe OpenCensus::Stats::Recorder do
     end
 
     it "record measurement against tags global context" do
-      OpenCensus::Tags.tag_map_context = OpenCensus::Tags::TagMap.new(
-        "frontend" => "android-1.0.1"
-      )
+      OpenCensus::Tags.tag_map_context = OpenCensus::Tags::TagMap.new([
+        OpenCensus::Tags::Tag.new("frontend", "android-1.0.1")
+      ])
 
       recorder = OpenCensus::Stats::Recorder.new
       recorder.register_view view
@@ -165,7 +167,7 @@ describe OpenCensus::Stats::Recorder do
       measurement = OpenCensus::Stats.create_measurement(
         name: measure_name,
         value: 1,
-        tags: OpenCensus::Tags.tag_map_context
+        tags: OpenCensus::Tags.tag_map_context.tags
       )
       recorder.record measurement
       view_data = recorder.view_data view.name
@@ -179,7 +181,7 @@ describe OpenCensus::Stats::Recorder do
       recorder = OpenCensus::Stats::Recorder.new
       recorder.register_view view
 
-      recorder.record measure.create_measurement(value: 10, tags: tag_map)
+      recorder.record measure.create_measurement(value: 10, tags: tags)
       view_data = recorder.view_data view.name
       view_data.data.length.must_equal 1
 

@@ -48,12 +48,12 @@ module OpenCensus
         def serialize tags_context
           binary = [int_to_varint(VERSION_ID)]
 
-          tags_context.each do |key, value|
+          tags_context.each do |tag|
             binary << int_to_varint(TAG_FIELD_ID)
-            binary << int_to_varint(key.length)
-            binary << key.encode(Encoding::UTF_8)
-            binary << int_to_varint(value ? value.length : 0)
-            binary << value.to_s.encode(Encoding::UTF_8)
+            binary << int_to_varint(tag.key.length)
+            binary << tag.key.encode(Encoding::UTF_8)
+            binary << int_to_varint(tag.value ? tag.value.length : 0)
+            binary << tag.value.to_s.encode(Encoding::UTF_8)
           end
 
           binary = binary.join
@@ -87,7 +87,7 @@ module OpenCensus
             key = io.gets key_length
             value_length = varint_to_int io
             value = io.gets value_length
-            tag_map[key] = value
+            tag_map << Tag.new(key, value)
           end
 
           io.close
