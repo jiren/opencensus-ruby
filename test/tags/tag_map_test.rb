@@ -2,7 +2,7 @@ require "test_helper"
 
 describe OpenCensus::Tags::TagMap do
   let(:tag) {
-    OpenCensus::Tags::Tag.new("frontend", "mobile-1.0")
+    OpenCensus::Tags::Tag.new "frontend", "mobile-1.0"
   }
 
   describe "create" do
@@ -12,7 +12,7 @@ describe OpenCensus::Tags::TagMap do
     end
 
     it "create tags map with tags" do
-      tag_map = OpenCensus::Tags::TagMap.new([tag])
+      tag_map = OpenCensus::Tags::TagMap.new [tag]
       tag_map.length.must_equal 1
       tag_map["frontend"].value.must_equal "mobile-1.0"
     end
@@ -36,7 +36,7 @@ describe OpenCensus::Tags::TagMap do
 
   describe "delete" do
     it "delete tag" do
-      tag_map = OpenCensus::Tags::TagMap.new([tag])
+      tag_map = OpenCensus::Tags::TagMap.new [tag]
 
       tag_map.delete "frontend"
       tag_map["frontend"].must_be_nil

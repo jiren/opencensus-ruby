@@ -25,6 +25,19 @@ describe OpenCensus::Tags::Formatters::Binary do
       binary = formatter.serialize(tag_map)
       binary.must_be_nil
     end
+
+    it "remove tag which can not propagate" do
+      tag_map = OpenCensus::Tags::TagMap.new
+      tag_map << OpenCensus::Tags::Tag.new("key1", "val1")
+      tag_map << OpenCensus::Tags::Tag.new("key2", "val2", ttl: 0)
+      tag_map << OpenCensus::Tags::Tag.new("key3", "val3")
+      tag_map << OpenCensus::Tags::Tag.new("key4", "val4")
+
+
+      binary = formatter.serialize(tag_map)
+      expected_binary = "\x00\x00\x04key1\x04val1\x00\x04key3\x04val3\x00\x04key4\x04val4"
+      binary.must_equal expected_binary
+    end
   end
 
   describe "deserialize" do

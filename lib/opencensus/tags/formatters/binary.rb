@@ -49,6 +49,8 @@ module OpenCensus
           binary = [int_to_varint(VERSION_ID)]
 
           tags_context.each do |tag|
+            next unless tag.propagate?
+
             binary << int_to_varint(TAG_FIELD_ID)
             binary << int_to_varint(tag.key.length)
             binary << tag.key.encode(Encoding::UTF_8)

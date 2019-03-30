@@ -77,7 +77,7 @@ module OpenCensus
 
       # Create new measurement
       # @param [Integer, Float] value
-      # @param [Array<Tags::Tag>] Tags to which the value is recorded
+      # @param [Array<Tags::Tag>] tags to which the value is recorded
       # @return [Measurement]
       def create_measurement value:, tags:
         Measurement.new measure: self, value: value, tags: tags

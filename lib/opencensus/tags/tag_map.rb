@@ -53,7 +53,7 @@ module OpenCensus
       end
 
       # Get all tags
-      # @param [Array<Tag>]
+      # @return [Array<Tag>]
       def tags
         @tags.values
       end
@@ -73,17 +73,12 @@ module OpenCensus
       end
 
       # Create a tag map from the binary string.
+      #
       # @param [String] data Binary string data
       # @return [TagMap]
       #
       def self.from_binary data
         Formatters::Binary.new.deserialize data
-      end
-
-      # Delete tag by key
-      # @param [String] key Tag key
-      def delete key
-        @tags.delete key
       end
 
       # @!method each
@@ -95,6 +90,10 @@ module OpenCensus
       # @!method empty?
       #   @see Array#empty?
       def_delegators :tags, :each, :length, :empty?
+
+      # @!method delete
+      #   @see Hash#delete
+      def_delegators :@tags, :delete
     end
   end
 end
