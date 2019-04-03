@@ -20,6 +20,11 @@ describe OpenCensus::Trace::SpanContext do
       OpenCensus::Trace::TraceContextData.new \
         "0123456789abcdef0123456789abcdef", "0123456789abcdef", 1
     end
+    let(:tracestate){
+      OpenCensus::Trace::Tracestate.new.tap do |ts|
+        ts.add "key1", "val1"
+      end
+    }
     it "populates defaults" do
       span_context = OpenCensus::Trace::SpanContext.create_root
       span_context.parent.must_be_nil
@@ -27,6 +32,7 @@ describe OpenCensus::Trace::SpanContext do
       span_context.trace_id.must_match %r{^[0-9a-f]{32}$}
       span_context.span_id.must_equal ""
       span_context.trace_options.must_equal 0
+      span_context.tracestate.must_be_nil
     end
 
     it "uses a parsed trace context" do
@@ -36,6 +42,18 @@ describe OpenCensus::Trace::SpanContext do
       span_context.trace_id.must_equal "0123456789abcdef0123456789abcdef"
       span_context.span_id.must_equal "0123456789abcdef"
       span_context.trace_options.must_equal 1
+    end
+
+    it "uses a parsed tracestate with trace context" do
+      span_context = OpenCensus::Trace::SpanContext.create_root trace_context: trace_context, tracestate: tracestate
+      span_context.tracestate.wont_be_nil
+      span_context.tracestate.length.must_equal 1
+    end
+
+    it "uses a parsed tracestate without trace context" do
+      span_context = OpenCensus::Trace::SpanContext.create_root tracestate: tracestate
+      span_context.tracestate.wont_be_nil
+      span_context.tracestate.length.must_equal 1
     end
   end
 

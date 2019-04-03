@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright 2019 OpenCensus Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,9 +19,9 @@ require "forwardable"
 
 module OpenCensus
   module Trace
-    # TraceState
-    class TraceState
-      # Entry
+    # Tracestate
+    class Tracestate
+      # @private
       #
       # Entry is pair of key and value.
       class Entry
@@ -35,7 +37,7 @@ module OpenCensus
         # @return [String]
         attr_reader :value
 
-        # Create instance of TraceState Entry
+        # Create instance of Tracestate Entry
         #
         # @param [String] key Key of the entry.
         #   The key must begin with a lowercase letter, and can only contain
@@ -43,21 +45,19 @@ module OpenCensus
         #  '-', asterisks '*', and forward slashes '/'.
         # @param [String] value Value of the entry.
         #   The value is opaque string up to 256 characters printable ASCII
-        #   RFC0020 characters (i.e., the range 0x20 to 0x7E) except ',' and '='.
+        #   RFC0020 characters (i.e., the range 0x20 to 0x7E) except ','
+        #   and '='.
         #   Note that this also excludes tabs, newlines, carriage returns, etc.
-        # @raise [ArgumentError] If invalid format of key or value.
         #
         def initialize key, value
-          unless validate_key key
-            raise ArgumentError, "Invalid key #{key}"
-          end
-
-          unless validate_value value
-            raise ArgumentError, "Invalid value #{value}"
-          end
-
           @key = key
           @value = value
+        end
+
+        # Check entry has valid key and value format.
+        # @return [Boolean]
+        def valid?
+          (validate_key(key) && validate_value(value)) == true
         end
 
         private
@@ -76,8 +76,6 @@ module OpenCensus
         def validate_key key
           key && key.length <= MAX_KEY_SIZE && KEY_FORMAT.match?(key)
         end
-
-        VALUE_FORMAT = /[,=\s~]/
 
         # Check value format
         #

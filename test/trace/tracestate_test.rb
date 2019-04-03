@@ -15,24 +15,25 @@
 
 require "test_helper"
 
-describe OpenCensus::Trace::TraceState do
+describe OpenCensus::Trace::Tracestate do
   describe "create" do
     it "create instance with default values" do
-      trace_state = OpenCensus::Trace::TraceState.new
+      trace_state = OpenCensus::Trace::Tracestate.new
       trace_state.empty?.must_equal true
+      trace_state.valid?.must_equal false
     end
   end
 
   describe "add or update entry" do
     it "add new entry" do
-      trace_state = OpenCensus::Trace::TraceState.new
+      trace_state = OpenCensus::Trace::Tracestate.new
       trace_state.add "key", "val"
       trace_state.length.must_equal 1
       trace_state.get_value("key").must_equal "val"
     end
 
     it "add new entry in front of the list" do
-      trace_state = OpenCensus::Trace::TraceState.new
+      trace_state = OpenCensus::Trace::Tracestate.new
       trace_state.add "key1", "val1"
       trace_state.add "key2", "val2"
 
@@ -41,7 +42,7 @@ describe OpenCensus::Trace::TraceState do
     end
 
     it "update entry and move entry in front of the list" do
-      trace_state = OpenCensus::Trace::TraceState.new
+      trace_state = OpenCensus::Trace::Tracestate.new
       trace_state.add "key1", "val1"
       trace_state.add "key2", "val2"
       trace_state.add "key1", "val-1"
@@ -53,21 +54,24 @@ describe OpenCensus::Trace::TraceState do
     end
 
     it "allow max 32 entries" do
-      trace_state = OpenCensus::Trace::TraceState.new
+      trace_state = OpenCensus::Trace::Tracestate.new
 
       32.times do |i|
         trace_state.add "key#{i+1}", "val#{i+1}"
       end
+      trace_state.add("key33", "val33").must_equal false
+    end
 
-      proc {
-        trace_state.add "key33", "val33"
-      }.must_raise ArgumentError
+    it "set valid flag is entry is invalid" do
+      trace_state = OpenCensus::Trace::Tracestate.new
+      trace_state.add("Key33", "val33 ").must_equal false
+      trace_state.valid?.must_equal false
     end
   end
 
   describe "delete" do
     it "delete entry by key" do
-      trace_state = OpenCensus::Trace::TraceState.new
+      trace_state = OpenCensus::Trace::Tracestate.new
       trace_state.add "key1", "val1"
       trace_state.add "key2", "val2"
       trace_state.length.must_equal 2

@@ -15,120 +15,103 @@
 
 require "test_helper"
 
-describe OpenCensus::Trace::TraceState::Entry do
+describe OpenCensus::Trace::Tracestate::Entry do
   describe "#create" do
     it "create entry with valid key and value" do
-      entry = OpenCensus::Trace::TraceState::Entry.new "key", "value"
+      entry = OpenCensus::Trace::Tracestate::Entry.new "key", "value"
 
       entry.key.must_equal "key"
       entry.value.must_equal "value"
     end
   end
+
   describe "key validations" do
     it "key is nil" do
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new nil, "value"
-      }.must_raise ArgumentError
+      entry = OpenCensus::Trace::Tracestate::Entry.new nil, "value"
+      entry.valid?.must_equal false
     end
 
     it "size more then 256 chars" do
       key = "a"*257
-
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new key, "value"
-      }.must_raise ArgumentError
+      entry = OpenCensus::Trace::Tracestate::Entry.new key, "value"
+      entry.valid?.must_equal false
     end
 
     it "invalid first chars" do
       key = "1aaAbB"
+      entry = OpenCensus::Trace::Tracestate::Entry.new key, "value"
+      entry.valid?.must_equal false
+    end
 
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new key, "value"
-      }.must_raise ArgumentError
-
+    it "contains upercase chars" do
       key = "AaaAbB"
-
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new key, "value"
-      }.must_raise ArgumentError
+      entry = OpenCensus::Trace::Tracestate::Entry.new key, "value"
+      entry.valid?.must_equal false
     end
 
     it "include upercase chars" do
       key = "aaAbB"
-
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new key, "value"
-      }.must_raise ArgumentError
+      entry =  OpenCensus::Trace::Tracestate::Entry.new key, "value"
+      entry.valid?.must_equal false
     end
 
     it "include chars not in allowrd chars set" do
       key = "aaAbB"
       key << ['z'.bytes.first + 1].pack('c')
-
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new key, "value"
-      }.must_raise ArgumentError
+      entry = OpenCensus::Trace::Tracestate::Entry.new key, "value"
+      entry.valid?.must_equal false
     end
 
     it "allowed all valid chars" do
       key = ("a".."z").to_a.join
       key << (0..9).to_a.join
       key << "_-*/"
-
-      entry = OpenCensus::Trace::TraceState::Entry.new key, "value"
+      entry = OpenCensus::Trace::Tracestate::Entry.new key, "value"
+      entry.valid?.must_equal true
       entry.key.must_equal key
     end
   end
 
   describe "value validations" do
     it "value is nil" do
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new "key", nil
-      }.must_raise ArgumentError
+      entry = OpenCensus::Trace::Tracestate::Entry.new "key", nil
+      entry.valid?.must_equal false
     end
 
     it "size more then 256 chars" do
       value = "v"*257
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new "key", value
-      }.must_raise ArgumentError
+      entry = OpenCensus::Trace::Tracestate::Entry.new "key", value
+      entry.valid?.must_equal false
     end
 
     it "start with space" do
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new "key", " value"
-      }.must_raise ArgumentError
+      entry = OpenCensus::Trace::Tracestate::Entry.new "key", " value"
+      entry.valid?.must_equal false
     end
 
     it "contain equal char" do
       value = "value=5"
-
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new "key", value
-      }.must_raise ArgumentError
+      entry = OpenCensus::Trace::Tracestate::Entry.new "key", value
+      entry.valid?.must_equal false
     end
 
     it "contain comma char" do
       value = "value,5"
-
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new "key", value
-      }.must_raise ArgumentError
+      entry = OpenCensus::Trace::Tracestate::Entry.new "key", value
+      entry.valid?.must_equal false
     end
 
     it "contain trailing space" do
       value = "value "
-
-      proc {
-        OpenCensus::Trace::TraceState::Entry.new "key", value
-      }.must_raise ArgumentError
+      entry = OpenCensus::Trace::Tracestate::Entry.new "key", value
+      entry.valid?.must_equal false
     end
 
     it "allowed all valid chars" do
       value = (" ".."~").to_a.join
       value.gsub!(/[\s=~,]/, '')
 
-      entry = OpenCensus::Trace::TraceState::Entry.new "key", value
+      entry = OpenCensus::Trace::Tracestate::Entry.new "key", value
       entry.value.must_equal value
     end
   end

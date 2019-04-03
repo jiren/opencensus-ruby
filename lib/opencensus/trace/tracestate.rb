@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright 2017 OpenCensus Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,27 +16,28 @@
 
 
 require "forwardable"
-require "opencensus/trace/trace_state/entry"
+require "opencensus/trace/tracestate/entry"
 
 module OpenCensus
   module Trace
-    # # TraceState
+    # # Tracestate
     #
-    # TraceState carries information about request position in multiple
+    # Tracestate carries information about request position in multiple
     # distributed tracing graphs in a list of key value pair. It is a list of
     # Tracestate. Entry with a maximum of 32 members in the list.
     #
     # @see the https://github.com/w3c/distributed-tracing for more details.
-    class TraceState
+    class Tracestate
       extend Forwardable
 
       # Maximum numbers of members in the tracestate.
       MAX_ENTRIES = 32
 
-      # Create a TraceState object.
+      # Create a Tracestate object.
       #
       def initialize
         @entries = []
+        @valid_tracestate = true
       end
 
       # Add or update entry
@@ -48,18 +51,35 @@ module OpenCensus
       #   RFC0020 characters (i.e., the range 0x20 to 0x7E) except ',' and '='.
       #   Note that this also excludes tabs, newlines, carriage returns, etc.
       # @raise [ArgumentError] If invalid format of key or value.
-      # @return [Entry]
+      # @return [Boolean] false if format of key or value is invalid or more
+      #   then {MAX_ENTRIES} entries.
       #
       def add key, value
+        return false unless @valid_tracestate
+
         if @entries.length >= MAX_ENTRIES
-          raise ArgumentError, "Maximum #{MAX_ENTRIES} entries are allowed"
+          @valid_tracestate = false
+          return false
+        end
+
+        entry = Entry.new key, value
+
+        unless entry.valid?
+          @valid_tracestate = false
+          return false
         end
 
         # To maintain order, delete entry and add front of the list.
-        @entries.delete_if { |entry| entry.key == key }
-        entry = Entry.new key, value
+        @entries.delete_if { |e| e.key == key }
         @entries.unshift entry
-        entry
+        true
+      end
+
+      # Check Tracestate is valid or not.
+      # @return [Boolean]
+      def valid?
+        return false if @entries.empty?
+        @valid_tracestate
       end
 
       # Delete entry
@@ -84,6 +104,8 @@ module OpenCensus
 
       # @!method each
       #   @see Array#each
+      # @!method map
+      #   @see Array#map
       # @!method delete_if
       #   @see Array#delete_if
       # @!method length
@@ -92,7 +114,7 @@ module OpenCensus
       #   @see Array#empty?
       # @!method []
       #   @see Array#[]
-      def_delegators :@entries, :each, :delete_if, :length, :empty?, :[]
+      def_delegators :@entries, :each, :map, :delete_if, :length, :empty?, :[]
     end
   end
 end

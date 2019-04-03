@@ -48,23 +48,28 @@ module OpenCensus
         # unique `trace_id` and a root `span_id` of "" is used.
         #
         # @param [TraceContextData] trace_context The request's incoming trace
-        #      context (optional)
+        #   context (optional)
         # @param [boolean, nil] same_process_as_parent Set to `true` if the
-        #      parent span is local, `false` if it is remote, or `nil` if there
-        #      is no parent span or this information is not available.
-        #
+        #   parent span is local, `false` if it is remote, or `nil` if there
+        #   is no parent span or this information is not available.
+        # @param [Tracestate, nil] tracestate It is list of key value pairs and
+        #   conveys information about request position in multiple
+        #   distributed tracing graphs
         # @return [SpanContext]
         #
-        def create_root trace_context: nil, same_process_as_parent: nil
+        def create_root trace_context: nil,
+                        same_process_as_parent: nil,
+                        tracestate: nil
           if trace_context
             trace_data = TraceData.new trace_context.trace_id, {}
             new trace_data, nil, trace_context.span_id,
-                trace_context.trace_options, same_process_as_parent
+                trace_context.trace_options, same_process_as_parent,
+                tracestate: tracestate
           else
             trace_id = rand 1..MAX_TRACE_ID
             trace_id = trace_id.to_s(16).rjust(32, "0")
             trace_data = TraceData.new trace_id, {}
-            new trace_data, nil, "", 0, nil
+            new trace_data, nil, "", 0, nil, tracestate: tracestate
           end
         end
       end
@@ -138,6 +143,13 @@ module OpenCensus
       # @return [boolean, nil]
       #
       attr_reader :same_process_as_parent
+
+      ##
+      # Tracestate associated with SpanContext and it conveys information about
+      # request position in multiple distributed tracing graphs.
+      #
+      # @return [Tracestate, nil]
+      attr_reader :tracestate
 
       ##
       # Whether this context (e.g. the parent span) has been sampled. This
@@ -288,12 +300,13 @@ module OpenCensus
       # @private
       #
       def initialize trace_data, parent, span_id, trace_options,
-                     same_process_as_parent
+                     same_process_as_parent, tracestate: nil
         @trace_data = trace_data
         @parent = parent
         @span_id = span_id
         @trace_options = trace_options
         @same_process_as_parent = same_process_as_parent
+        @tracestate = tracestate
       end
 
       ##

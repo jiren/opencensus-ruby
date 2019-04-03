@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright 2017 OpenCensus Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +18,7 @@
 require "opencensus/trace/formatters/binary"
 require "opencensus/trace/formatters/cloud_trace"
 require "opencensus/trace/formatters/trace_context"
+require "opencensus/trace/formatters/tracestate"
 
 module OpenCensus
   module Trace
