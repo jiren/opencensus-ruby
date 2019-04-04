@@ -59,6 +59,15 @@ module OpenCensus
           HEADER_NAME
         end
 
+        # Returns the name of the rack_environment header to use when tracestate
+        # context from an incoming request.
+        #
+        # @return [String]
+        #
+        def rack_header_name
+          RACK_HEADER_NAME
+        end
+
         # Deserialize a trace state header into a Tracestate object.
         #
         # @param [String] header
@@ -84,9 +93,11 @@ module OpenCensus
         # Serialize a Tracestate object.
         #
         # @param [Tracestate] tracestate
-        # @return [String]
+        # @return [String,nil]
         #
         def serialize tracestate
+          return nil if tracestate.empty?
+
           entries = tracestate.map do |e|
             "#{e.key}#{KEY_VALUE_DELIMITER}#{e.value}"
           end

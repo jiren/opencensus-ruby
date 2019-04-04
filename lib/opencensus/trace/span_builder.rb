@@ -116,6 +116,15 @@ module OpenCensus
       end
       alias sampled sampled?
 
+      # Treacestate is a list of key value pairs and conveys information about
+      # request position in multiple distributed tracing graphs.
+      #
+      # @return [Tracestate]
+      #
+      def tracestate
+        context.tracestate
+      end
+
       ##
       # A description of the span's operation.
       #
@@ -411,7 +420,8 @@ module OpenCensus
                  dropped_links_count: dropped_links_count,
                  status: built_status,
                  same_process_as_parent_span: same_process_as_parent_span,
-                 child_span_count: child_span_count
+                 child_span_count: child_span_count,
+                 tracestate: tracestate
       end
 
       # rubocop:enable Metrics/MethodLength

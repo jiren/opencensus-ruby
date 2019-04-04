@@ -59,6 +59,26 @@ describe OpenCensus::Trace::SpanBuilder do
     end
   end
 
+  describe "tracestate" do
+    it "should be set for root span" do
+      span_builder.tracestate.wont_be_nil
+    end
+
+    it "should be set for nested span" do
+      span_builder2 = span_builder.context.start_span "inner span"
+      span_builder2.tracestate.wont_be_nil
+      span_builder2.tracestate.must_be_instance_of OpenCensus::Trace::Tracestate
+    end
+
+    it "should be captured" do
+      sb = span_builder
+      sb.tracestate.add "key1", "val1"
+      span = sb.to_span
+      span.tracestate.must_be_instance_of OpenCensus::Trace::Tracestate
+      span.tracestate.size.must_equal 1
+    end
+  end
+
   describe "start!" do
     it "should not allow you to start more than once" do
       err = -> { span_builder.start! }.must_raise RuntimeError

@@ -35,6 +35,7 @@ describe OpenCensus::Trace::Integrations::Rails do
       span.name.value.must_equal "sql.active_record"
       span.attributes.size.must_equal 1
       span.attributes["rails/query"].value.must_equal "hello"
+      span.tracestate.size.must_equal 0
     end
   end
 end

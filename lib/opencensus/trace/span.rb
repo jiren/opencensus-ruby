@@ -201,6 +201,15 @@ module OpenCensus
       #
       attr_reader :child_span_count
 
+      # Treacestate is a list of key value pairs and conveys information about
+      # request position in multiple distributed tracing graphs.
+      #
+      # @return [Tracestate]
+      #
+      attr_reader :tracestate
+
+      # rubocop:disable  Metrics/MethodLength
+
       ##
       # Create an empty Span object.
       #
@@ -215,7 +224,8 @@ module OpenCensus
                      dropped_message_events_count: 0, links: [],
                      dropped_links_count: 0, status: nil,
                      same_process_as_parent_span: nil,
-                     child_span_count: nil
+                     child_span_count: nil,
+                     tracestate: nil
         @name = name
         @kind = kind
         @trace_id = trace_id
@@ -236,7 +246,10 @@ module OpenCensus
         @status = status
         @same_process_as_parent_span = same_process_as_parent_span
         @child_span_count = child_span_count
+        @tracestate = tracestate
       end
+
+      # rubocop:enable  Metrics/MethodLength
 
       private
 

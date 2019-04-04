@@ -177,4 +177,21 @@ describe OpenCensus::Trace::Integrations::RackMiddleware do
       root_span.parent_span_id.must_be_empty
     end
   end
+
+  describe "tracestates formatting" do
+    let(:middleware) { OpenCensus::Trace::Integrations::RackMiddleware.new app, exporter: exporter }
+
+    it "parses tracestate header from rack environment" do
+      env = {
+        "HTTP_TRACESTATE" => "congo=12345,rojo=67890"
+      }
+      resp = middleware.call env
+      root_span = exporter.spans.first
+
+      resp.must_equal RACK_APP_RESPONSE
+      root_span.tracestate.length.must_equal 2
+      root_span.tracestate.get_value("congo").must_equal "12345"
+      root_span.tracestate.get_value("rojo").must_equal "67890"
+    end
+  end
 end

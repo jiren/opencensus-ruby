@@ -66,7 +66,7 @@ module OpenCensus
         # The key must begin with a lowercase letter, and can only contain
         # lowercase letters 'a'-'z', digits '0'-'9', underscores '_', dashes
         # '-', asterisks '*', and forward slashes '/'.
-        KEY_FORMAT = /\A[a-z][a-z\d\-_*\/]*\z/
+        KEY_FORMAT = %r{\A[a-z][a-z\d\-_*\/]*\z}
 
         # Check key format
         #

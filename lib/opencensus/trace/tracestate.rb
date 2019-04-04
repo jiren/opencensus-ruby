@@ -110,11 +110,14 @@ module OpenCensus
       #   @see Array#delete_if
       # @!method length
       #   @see Array#length
+      # @!method size
+      #   @see Array#size
       # @!method empty?
       #   @see Array#empty?
       # @!method []
       #   @see Array#[]
-      def_delegators :@entries, :each, :map, :delete_if, :length, :empty?, :[]
+      def_delegators :@entries, :each, :map, :delete_if, :length, :size, \
+                     :empty?, :[]
     end
   end
 end

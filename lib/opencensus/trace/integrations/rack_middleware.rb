@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright 2017 OpenCensus Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,9 +41,17 @@ module OpenCensus
         #
         # @private
         #
-        AUTODETECTABLE_FORMATTERS = [
+        AUTODETECTABLE_TRACE_FORMATTERS = [
           Formatters::CloudTrace.new,
           Formatters::TraceContext.new
+        ].freeze
+
+        # List of trace state formatters
+        #
+        # @private
+        #
+        AUTODETECTABLE_TRACE_STATE_FORMATTERS = [
+          Formatters::Tracestate.new
         ].freeze
 
         ##
@@ -57,6 +67,8 @@ module OpenCensus
           @exporter = exporter || OpenCensus::Trace.config.exporter
         end
 
+        # rubocop:disable Metrics/MethodLength
+
         ##
         # Run the Rack middleware.
         #
@@ -66,16 +78,18 @@ module OpenCensus
         #     body which must respond to `each`.
         #
         def call env
-          formatter = AUTODETECTABLE_FORMATTERS.detect do |f|
-            env.key? f.rack_header_name
-          end
-          if formatter
-            context = formatter.deserialize env[formatter.rack_header_name]
-          end
+          trace_context = deserialize_header \
+            AUTODETECTABLE_TRACE_FORMATTERS,
+            env
+
+          tracestate = deserialize_header \
+            AUTODETECTABLE_TRACE_STATE_FORMATTERS,
+            env
 
           Trace.start_request_trace \
-            trace_context: context,
-            same_process_as_parent: false do |span_context|
+            trace_context: trace_context,
+            same_process_as_parent: false,
+            tracestate: tracestate do |span_context|
             begin
               Trace.in_span get_path(env) do |span|
                 start_request span, env
@@ -88,6 +102,8 @@ module OpenCensus
             end
           end
         end
+
+        # rubocop:enable Metrics/MethodLength
 
         private
 
@@ -117,6 +133,12 @@ module OpenCensus
             span.set_http_status http_status
             span.put_attribute "http.status_code", http_status
           end
+        end
+
+        # Deserialize trace context and trace state header.
+        def deserialize_header formatters, env
+          formatter = formatters.detect { |f| env.key? f.rack_header_name }
+          formatter.deserialize env[formatter.rack_header_name] if formatter
         end
       end
     end

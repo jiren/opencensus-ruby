@@ -60,6 +60,7 @@ module OpenCensus
         def create_root trace_context: nil,
                         same_process_as_parent: nil,
                         tracestate: nil
+          tracestate ||= Tracestate.new
           if trace_context
             trace_data = TraceData.new trace_context.trace_id, {}
             new trace_data, nil, trace_context.span_id,
@@ -148,7 +149,8 @@ module OpenCensus
       # Tracestate associated with SpanContext and it conveys information about
       # request position in multiple distributed tracing graphs.
       #
-      # @return [Tracestate, nil]
+      # @return [Tracestate]
+      #
       attr_reader :tracestate
 
       ##
@@ -356,7 +358,8 @@ module OpenCensus
           child_span_id = child_span_id.to_s(16).rjust(16, "0")
           unless @trace_data.span_map.key? child_span_id
             return SpanContext.new @trace_data, self, child_span_id,
-                                   child_trace_options, true
+                                   child_trace_options, true,
+                                   tracestate: @tracestate
           end
         end
       end

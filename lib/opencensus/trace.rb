@@ -94,11 +94,18 @@ module OpenCensus
       # @param [boolean, nil] same_process_as_parent Set to `true` if the parent
       #      span is local, `false` if it is remote, or `nil` if there is no
       #      parent span or this information is not available.
+      # @param [Tracestate, nil] tracestate It is list of key value pairs and
+      #     conveys information about request position in multiple distributed
+      #     tracing graphs.
       #
-      def start_request_trace trace_context: nil, same_process_as_parent: nil
+      def start_request_trace \
+          trace_context: nil,
+          same_process_as_parent: nil,
+          tracestate: nil
         span_context = SpanContext.create_root \
           trace_context: trace_context,
-          same_process_as_parent: same_process_as_parent
+          same_process_as_parent: same_process_as_parent,
+          tracestate: tracestate
         self.span_context = span_context
         if block_given?
           begin

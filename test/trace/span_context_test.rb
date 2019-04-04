@@ -32,7 +32,8 @@ describe OpenCensus::Trace::SpanContext do
       span_context.trace_id.must_match %r{^[0-9a-f]{32}$}
       span_context.span_id.must_equal ""
       span_context.trace_options.must_equal 0
-      span_context.tracestate.must_be_nil
+      span_context.tracestate.must_be_kind_of OpenCensus::Trace::Tracestate
+      span_context.tracestate.must_be_empty
     end
 
     it "uses a parsed trace context" do
