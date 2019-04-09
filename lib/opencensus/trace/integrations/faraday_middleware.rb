@@ -183,8 +183,9 @@ module OpenCensus
           formatter = env[:formatter] || @formatter
           if formatter.respond_to? :header_name
             headers = env[:request_headers] ||= {}
-            trace_context = formatter.serialize span.context.trace_context
-            headers[formatter.header_name] = trace_context
+            trace_context =
+              formatter.headers_serialize span.context.trace_context
+            headers.merge! trace_context
           end
         end
 

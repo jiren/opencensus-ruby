@@ -195,6 +195,23 @@ describe OpenCensus::Trace::Integrations::FaradayMiddleware do
       header.must_match %r{^#{span.trace_id}/#{span.span_id.to_i(16)}}
     end
 
+    focus
+    it "should allow specific b3 format" do
+      middleware = OpenCensus::Trace::Integrations::FaradayMiddleware.new \
+        app(code: 200, body: nil), span_context: root_context,
+        formatter: OpenCensus::Trace::Formatters::B3Format.new_multi_headers
+      env = {
+        method: "POST",
+        url: "https://www.google.com/"
+      }
+      middleware.call env
+      span = root_context.build_contained_spans.first
+
+      env[:request_headers]["X-B3-TraceId"].must_equal span.trace_id
+      env[:request_headers]["X-B3-SpanId"].must_equal span.span_id
+      env[:request_headers]["X-B3-Sampled"].must_equal "1"
+    end
+
     it "should close span if exception raised" do
       middleware = OpenCensus::Trace::Integrations::FaradayMiddleware.new \
         app(code: 500, body: nil, exception: true), span_context: root_context

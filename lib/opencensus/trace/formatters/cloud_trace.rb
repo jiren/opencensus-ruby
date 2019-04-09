@@ -21,6 +21,8 @@ module OpenCensus
       # the Google X-Cloud-Trace header specification.
       #
       class CloudTrace
+        include IntegrationHelper
+
         ##
         # Internal regex used to parse fields
         #

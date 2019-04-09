@@ -22,6 +22,8 @@ module OpenCensus
       # [documentation](https://github.com/TraceContext/tracecontext-spec/blob/master/trace_context/HTTP_HEADER_FORMAT.md).
       #
       class TraceContext
+        include IntegrationHelper
+
         ##
         # Internal regex used to identify the TraceContext version
         #

@@ -41,7 +41,9 @@ module OpenCensus
         #
         AUTODETECTABLE_FORMATTERS = [
           Formatters::CloudTrace.new,
-          Formatters::TraceContext.new
+          Formatters::TraceContext.new,
+          Formatters::B3Format.new_multi_headers,
+          Formatters::B3Format.new_single_header
         ].freeze
 
         ##
@@ -69,9 +71,8 @@ module OpenCensus
           formatter = AUTODETECTABLE_FORMATTERS.detect do |f|
             env.key? f.rack_header_name
           end
-          if formatter
-            context = formatter.deserialize env[formatter.rack_header_name]
-          end
+
+          context = formatter.rack_deserialize env if formatter
 
           Trace.start_request_trace \
             trace_context: context,

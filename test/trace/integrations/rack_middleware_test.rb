@@ -177,4 +177,58 @@ describe OpenCensus::Trace::Integrations::RackMiddleware do
       root_span.parent_span_id.must_be_empty
     end
   end
+
+  describe "b3 format formatting" do
+    let(:middleware) { OpenCensus::Trace::Integrations::RackMiddleware.new app, exporter: exporter }
+    it "parses single b3 header from rack environment" do
+      env = {
+        "HTTP_B3" =>
+          "0123456789ABCDEF0123456789abcdef-0123456789ABCdef-1"
+      }
+      resp = middleware.call env
+      root_span = exporter.spans.first
+
+      resp.must_equal RACK_APP_RESPONSE
+      root_span.trace_id.must_equal "0123456789ABCDEF0123456789abcdef"
+      root_span.parent_span_id.must_equal "0123456789ABCdef"
+    end
+
+    it "falls back to default for invalid single header" do
+      env = {
+        "HTTP_B3" => "0123456789abcdef0123456789abcdef"
+      }
+      resp = middleware.call env
+      root_span = exporter.spans.first
+
+      resp.must_equal RACK_APP_RESPONSE
+      root_span.trace_id.must_match %r{^[0-9a-f]{32}$}
+      root_span.parent_span_id.must_be_empty
+    end
+
+    it "parses multiple b3 header from rack environment" do
+      env = {
+        "HTTP_X_B3_TRACEID" => "0123456789ABCDEF0123456789abcdef",
+        "HTTP_X_B3_SPANID" => "0123456789ABCdef",
+        "HTTP_X_B3_SAMPLED" => "0"
+      }
+      resp = middleware.call env
+      root_span = exporter.spans.first
+
+      resp.must_equal RACK_APP_RESPONSE
+      root_span.trace_id.must_equal "0123456789ABCDEF0123456789abcdef"
+      root_span.parent_span_id.must_equal "0123456789ABCdef"
+    end
+
+    it "falls back to default for missing multiple header" do
+      env = {
+        "HTTP_X_B3_TRACEID" => "0123456789abcdef0123456789abcdef"
+      }
+      resp = middleware.call env
+      root_span = exporter.spans.first
+
+      resp.must_equal RACK_APP_RESPONSE
+      root_span.trace_id.must_match %r{^[0-9a-f]{32}$}
+      root_span.parent_span_id.must_be_empty
+    end
+  end
 end

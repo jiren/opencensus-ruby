@@ -13,20 +13,30 @@
 # limitations under the License.
 
 
-require "opencensus/trace/formatters/integration_helper"
-require "opencensus/trace/formatters/binary"
-require "opencensus/trace/formatters/cloud_trace"
-require "opencensus/trace/formatters/trace_context"
-require "opencensus/trace/formatters/b3_format"
-
 module OpenCensus
   module Trace
-    ##
-    # The Formatters module contains several implementations of cross-service
-    # context propagation. Each formatter can serialize and deserialize a
-    # {OpenCensus::Trace::TraceContextData} instance.
-    #
     module Formatters
+      ##
+      # Integration helper methods for rack middleware and http client
+      #
+      module IntegrationHelper
+        # Deserialize rack headers
+        #
+        # @return [Hash<Symbol, String>] Hash of the TraceId, SpanId,
+        #   SamplingState, ParentSpanId
+        #
+        def rack_deserialize env
+          deserialize env[rack_header_name]
+        end
+
+        # Serialize TraceContext to hash of headers name and value.
+        #
+        # @return [Hash<String, String>]
+        #
+        def headers_serialize trace_context
+          { header_name => serialize(trace_context) }
+        end
+      end
     end
   end
 end
