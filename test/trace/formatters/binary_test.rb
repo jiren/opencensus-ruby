@@ -18,6 +18,8 @@ describe OpenCensus::Trace::Formatters::Binary do
   let(:formatter) { OpenCensus::Trace::Formatters::Binary.new }
 
   describe "deserialize" do
+    let(:trace_id) { "123456789012345678901234567890ab" }
+    let(:span_id) { "00000000000004d2" }
     it "should return nil on invalid format" do
       data = formatter.deserialize "badvalue"
       data.must_be_nil
@@ -29,6 +31,62 @@ describe OpenCensus::Trace::Formatters::Binary do
       data.trace_id.must_equal "123456789012345678901234567890ab"
       data.span_id.must_equal "00000000000004d2"
       data.trace_options.must_equal 1
+    end
+
+    it "should retirn nil on invalid version" do
+      binary = [
+        "01",
+        "00",
+        trace_id,
+        "01",
+        span_id,
+        "02",
+        "01"
+      ].join
+      data = formatter.deserialize [binary].pack("H*")
+      data.must_be_nil
+    end
+
+    it "should retirn nil on invalid trace id field" do
+      binary = [
+        "01",
+        "01",
+        trace_id,
+        "01",
+        span_id,
+        "02",
+        "01"
+      ].join
+      data = formatter.deserialize [binary].pack("H*")
+      data.must_be_nil
+    end
+
+    it "should retirn nil on invalid span id field" do
+      binary = [
+        "00",
+        "00",
+        trace_id,
+        "02",
+        span_id,
+        "02",
+        "01"
+      ].join
+      data = formatter.deserialize ["0000123456789012345678901234567890ab0200000000000004d20201"].pack("H*")
+      data.must_be_nil
+    end
+
+    it "should retirn nil on invalid trace option id field" do
+      binary = [
+        "00",
+        "00",
+        trace_id,
+        "01",
+        span_id,
+        "03",
+        "01"
+      ].join
+      data = formatter.deserialize ["0000123456789012345678901234567890ab0100000000000004d20301"].pack("H*")
+      data.must_be_nil
     end
   end
 
@@ -43,9 +101,10 @@ describe OpenCensus::Trace::Formatters::Binary do
       OpenCensus::Trace::SpanContext.new trace_data, nil, "00000000000004d2", 1, nil
     end
 
-    it "should serialize a SpanContext object" do
-      header = formatter.serialize span_context
-      header.must_equal ["0000123456789012345678901234567890ab0100000000000004d20201"].pack("H*")
+    it "should serialize a SpanContext object if span id is nil" do
+      ctx = OpenCensus::Trace::SpanContext.new trace_data, nil, nil, 1, nil
+      header = formatter.serialize ctx
+      header.must_equal ["0000123456789012345678901234567890ab0100000000000000000201"].pack("H*")
     end
   end
 end

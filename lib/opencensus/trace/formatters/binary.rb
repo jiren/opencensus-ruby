@@ -29,6 +29,23 @@ module OpenCensus
         #
         BINARY_FORMAT = "CCH32CH16CC".freeze
 
+        # Binary format version
+        # @private
+        #
+        VERSION = 0
+
+        # @private
+        #
+        TRACE_ID_FIELD_ID = 0
+
+        # @private
+        #
+        SPAN_ID_FIELD_ID = 1
+
+        # @private
+        #
+        TRACE_OPTION_FIELD_ID = 2
+
         ##
         # Deserialize a trace context header into a TraceContext object.
         #
@@ -36,8 +53,9 @@ module OpenCensus
         # @return [TraceContextData, nil]
         #
         def deserialize binary
-          data = binary.unpack(BINARY_FORMAT)
-          if data[0].zero? && data[1].zero? && data[3] == 1 && data[5] == 2
+          data = binary.unpack BINARY_FORMAT
+          if data[0] == VERSION && data[1] == TRACE_ID_FIELD_ID && \
+              data[3] == SPAN_ID_FIELD_ID && data[5] == TRACE_OPTION_FIELD_ID
             TraceContextData.new data[2], data[4], data[6]
           else
             nil
@@ -52,14 +70,14 @@ module OpenCensus
         #
         def serialize trace_context
           [
-            0, # version
-            0, # field 0
+            VERSION,
+            TRACE_ID_FIELD_ID,
             trace_context.trace_id,
-            1, # field 1
+            SPAN_ID_FIELD_ID,
             trace_context.span_id,
-            2, # field 2
+            TRACE_OPTION_FIELD_ID,
             trace_context.trace_options
-          ].pack(BINARY_FORMAT)
+          ].pack BINARY_FORMAT
         end
       end
     end
