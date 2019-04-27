@@ -266,6 +266,15 @@ module OpenCensus
         @code = code
         @message = message
       end
+
+      ##
+      # Check error status code
+      #
+      # @return [Boolean]
+      #
+      def error?
+        @code != OK
+      end
     end
   end
 end

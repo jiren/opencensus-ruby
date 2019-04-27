@@ -1,4 +1,6 @@
-# Copyright 2018 OpenCensus Authors
+# frozen_string_literal: true
+
+# Copyright 2019 OpenCensus Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,63 +15,75 @@
 # limitations under the License.
 
 
-require "forwardable"
+require "set"
 
 module OpenCensus
   module Trace
     module Exporters
-      # RunningSpanStore allows users to access in-process information about
-      # all running spans.
+      # # RunningSpanStore
       #
-      # The running spans tracking is available for all the spans with the option
-      # This functionality allows users to debug stuck
-      # operations or long living operations.
+      # This store allows users to access in-process information about
+      # all running spans in current span context. This functionality allows
+      # users to debug stuck operations or long living operations.
       #
       class RunningSpanStore
-        extend Forwardable
+        # rubocop:disable Style/EmptyMethod
 
-        # Get list of recordred spans
-        # @return [Array<OpenCensus::Trace::Span>]
-        attr_reader :spans
-
-        ##
-        # Create a new RunningSpanStore exporter
+        # Export spans
         #
-        def initialize
-          @spans = []
-        end
-
-        # Store the captured spans.
-        #
-        # @param [Array<Span>] spans The captured spans.
-        #
+        # @param [Array<Span>]
         def export spans
-          @spans = spans
-          nil
         end
 
-        def_delegators :@spans, :clear, :select, :find_all, :find, :each
+        # rubocop:enable Style/EmptyMethod
 
-        # Filters runnings spans.
+        # Get spans by span name.
         #
-        # @param [String] span_name The name of the span
-        # @param [String] limit The maximum number of results to be returned
-        #
-        def filter span_name, limit: nil
-          result = @spans.select { |span| span.name.to_s == span_name }
-          limit ? result.take(limit) : result
+        # @param [String] span_name
+        # @return [Array<Span>]
+        def [] span_name
+          store[span_name]
         end
 
-        # Struct that Span name and running span count.
+        # Get all active spans.
         #
-        SpanSummary = Struct.new :name, :number_of_running_spans
+        # @return [Array<Span>]
+        def spans
+          span_context = Trace.span_context
+          return [] unless span_context
 
-        # Get spans summary
-        # @return [Hash<String, SpanSummary>]
+          span_builders = Set.new
+          loop do
+            span_context.contained_span_builders.each do |sb|
+              span_builders << sb unless sb.finished?
+            end
+
+            span_context = span_context.parent
+            break unless span_context
+          end
+
+          span_builders.map do |sb|
+            sb.to_span validate_timestamps: false
+          end
+        end
+
+        # Store of the exported spans.
+        #
+        # @return [Hash<String, Array<Span>>]
+        def store
+          spans.each_with_object({}) do |span, r|
+            r[span.name.to_s] ||= []
+            r[span.name.to_s] << r
+          end
+        end
+
+        # Summary of number of spans based on span name.
+        #
+        # @return [Hash<String, Integer>] Returns map of span count for each
+        #   each unique span.
         def summary
-          @spans.each_with_object({}) do |span, r|
-            r[span.name.to_s] ||=  SpanSummary.new span.name.to_s, 0
-            r[span.name.to_s].number_of_running_spans += 1
+          store.each_with_object({}) do |(name, spans), r|
+            r[name] = spans.length
           end
         end
       end

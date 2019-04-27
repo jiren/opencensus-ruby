@@ -16,6 +16,8 @@
 require "opencensus/trace/exporters/logger"
 require "opencensus/trace/exporters/multi"
 require "opencensus/trace/exporters/running_span_store"
+require "opencensus/trace/exporters/sampled_error_span_store"
+require "opencensus/trace/exporters/sampled_latency_span_store"
 
 module OpenCensus
   module Trace

@@ -362,6 +362,9 @@ module OpenCensus
       #     truncated strings, or `nil` to use the config value.
       # @param [Integer, nil] child_span_count The number of child spans to
       #     declare, or `nil` to omit the `child_span_count` field.
+      # @param [Boolean] validate_timestamps Validate start and end timestamps.
+      #     Default value is `truee` and and raise error if start time and
+      #     end time not set.
       #
       # @return [Span]
       #
@@ -371,10 +374,13 @@ module OpenCensus
                   max_message_events: nil,
                   max_links: nil,
                   max_string_length: nil,
-                  child_span_count: nil
+                  child_span_count: nil,
+                  validate_timestamps: true
 
-        raise "Span must have start_time" unless @start_time
-        raise "Span must have end_time" unless @end_time
+        if validate_timestamps
+          raise "Span must have start_time" unless @start_time
+          raise "Span must have end_time" unless @end_time
+        end
 
         builder = PieceBuilder.new max_attributes: max_attributes,
                                    max_stack_frames: max_stack_frames,
