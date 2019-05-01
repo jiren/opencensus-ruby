@@ -205,6 +205,16 @@ module OpenCensus
         self.span_context = context.parent
         span
       end
+
+      # Stop span exporter.
+      def stop_exporter
+        config.exporter.stop! if config.exporter.respond_to? :stop!
+      end
+
+      # Resume span exporter.
+      def resume_exporter
+        config.exporter.resume! if config.exporter.respond_to? :resume!
+      end
     end
   end
 end

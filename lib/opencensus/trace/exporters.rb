@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+require "opencensus/trace/exporters/base"
 require "opencensus/trace/exporters/logger"
 require "opencensus/trace/exporters/multi"
 

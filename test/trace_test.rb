@@ -104,4 +104,28 @@ describe OpenCensus::Trace do
       OpenCensus::Trace.span_context.root?.must_equal true
     end
   end
+
+  describe "stop exporter" do
+    before {
+      @original_exporter = OpenCensus::Trace.config.exporter
+    }
+
+    after {
+      OpenCensus::Trace.config.exporter = @original_exporter
+    }
+
+    it "should stop exporting spans" do
+      exporter = TestTraceExporter.new
+      OpenCensus::Trace.config.exporter = exporter
+
+      spans = ["span1", "span2"]
+      OpenCensus::Trace.stop_exporter
+      exporter.export spans
+      exporter.spans.must_be_nil
+
+      OpenCensus::Trace.resume_exporter
+      exporter.export spans
+      exporter.spans.must_equal spans
+    end
+  end
 end

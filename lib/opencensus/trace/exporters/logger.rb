@@ -23,7 +23,7 @@ module OpenCensus
       # The Logger exporter exports captured spans to a standard Ruby Logger
       # interface.
       #
-      class Logger
+      class Logger < Base
         ##
         # Create a new Logger exporter
         #
@@ -43,6 +43,7 @@ module OpenCensus
         # @param [Array<Span>] spans The captured spans.
         #
         def export spans
+          return if stopped?
           @logger.log @level, spans.map { |span| format_span(span) }.to_json
           nil
         end

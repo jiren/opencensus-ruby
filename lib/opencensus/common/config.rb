@@ -295,6 +295,7 @@ module OpenCensus
         if field.is_a? Config
           field
         else
+          return field.value.call if field.value == DeferredValue
           field.value
         end
       end
@@ -386,6 +387,8 @@ module OpenCensus
       def to_h!
         result = {}
         @fields.each do |k, v|
+          value = v.value
+          value = value.call if Config::DeferredValue === v
           result[k] = v.is_a?(Config) ? v.to_h! : v.value
         end
         result
@@ -416,6 +419,14 @@ module OpenCensus
       #
       def to_h
         to_h!
+      end
+
+      ##
+      # @private
+      # Create a configuration value that will be invoked when retrieved.
+      #
+      def self.deferred &block
+        DeferredValue.new(&block)
       end
 
       protected
@@ -495,6 +506,8 @@ module OpenCensus
       end
 
       def validate_value! key, validator, value
+        value = value.call if DeferredValue === value
+
         unless validator.call value
           raise ArgumentError,
                 "Invalid value #{value.inspect} for key #{key.inspect}"
@@ -517,6 +530,19 @@ module OpenCensus
           field = @fields[key]
           validate_value! key, field.validator, value
           field.value = value
+        end
+      end
+
+      ##
+      # @private
+      #
+      class DeferredValue
+        def initialize &block
+          @callback = block
+        end
+
+        def call
+          @callback.call
         end
       end
     end

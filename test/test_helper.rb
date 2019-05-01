@@ -25,3 +25,12 @@ end
 class TestTimeClass < Array
   alias_method :now, :shift
 end
+
+class TestTraceExporter < OpenCensus::Trace::Base
+  attr_accessor :spans
+
+  def export spans
+    return if stopped?
+    @spans = spans
+  end
+end

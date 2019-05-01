@@ -33,6 +33,8 @@ module OpenCensus
       #     multi.export(spans)  # Exports to the logger
       #
       class Multi < SimpleDelegator
+        include Base::BaseMixin
+
         ##
         # Create a new Multi exporter
         #
@@ -48,6 +50,7 @@ module OpenCensus
         # @param [Array<Span>] spans The captured spans.
         #
         def export spans
+          return if stopped?
           each { |delegate| delegate.export spans }
           nil
         end
